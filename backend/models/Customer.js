@@ -1,0 +1,41 @@
+import { DataTypes } from "sequelize";
+import { sequelize } from "../config/database.js";
+
+export const Customer = sequelize.define(
+  "Customer",
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
+    tenantId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+    },
+    shopifyCustomerId: {
+      type: DataTypes.STRING,
+    },
+    firstName: DataTypes.STRING,
+    lastName: DataTypes.STRING,
+    email: {
+      type: DataTypes.STRING,
+      validate: {
+        isEmail: true,
+      },
+    },
+    phone: DataTypes.STRING,
+    totalSpent: {
+      type: DataTypes.DECIMAL(10, 2),
+      defaultValue: 0,
+    },
+    ordersCount: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
+  },
+  {
+    tableName: "customers",
+    timestamps: true,
+  }
+);
