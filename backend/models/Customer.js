@@ -15,6 +15,7 @@ export const Customer = sequelize.define(
     },
     shopifyCustomerId: {
       type: DataTypes.STRING,
+      unique: true,
     },
     firstName: DataTypes.STRING,
     lastName: DataTypes.STRING,

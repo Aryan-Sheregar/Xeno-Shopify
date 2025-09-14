@@ -142,15 +142,6 @@ const startServer = async () => {
 
       // Seed a default tenant if none exists
       const tenantCount = await Tenant.count();
-      if (tenantCount === 0) {
-        await Tenant.create({
-          name: "Demo Store",
-          shopifyDomain:
-            process.env.SHOPIFY_STORE_DOMAIN || "demo.myshopify.com",
-          isActive: true,
-        });
-        console.log("🌱 Default tenant seeded");
-      }
     }
 
     // Start the server
