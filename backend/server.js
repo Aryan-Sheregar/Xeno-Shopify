@@ -5,6 +5,8 @@ import { sequelize } from "./config/database.js";
 import { setupAssociations } from "./models/index.js";
 import shopifyRoutes from "./routes/shopifyRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
+import webhookRoutes from "./routes/webhookRoutes.js";
+import { Tenant, Product } from "./models/index.js";
 
 dotenv.config();
 
@@ -52,10 +54,9 @@ app.get("/api/health", async (req, res) => {
 // 3. API Routes (AFTER middleware, BEFORE error handlers)
 app.use("/api/shopify", shopifyRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/webhooks", webhookRoutes);
 
-// 4. Additional routes that were in server.js - move these to separate route files later
-import { Tenant } from "./models/index.js";
-
+// Additional tenant routes
 // Get all tenants
 app.get("/api/tenants", async (req, res) => {
   try {
@@ -101,7 +102,34 @@ app.post("/api/tenants", async (req, res) => {
   }
 });
 
-// 5. Catch-all for undefined routes
+// Debug endpoint: get products for a tenant
+app.get("/api/debug/products/:tenantId", async (req, res) => {
+  try {
+    const { tenantId } = req.params;
+    const products = await Product.findAll({
+      where: { tenantId },
+      raw: true,
+    });
+    res.json({
+      count: products.length,
+      products,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete("/api/tenants/:tenantId", async (req, res) => {
+  try {
+    const { tenantId } = req.params;
+    const count = await Tenant.destroy({ where: { id: tenantId } });
+    res.json({ deleted: count });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 4. Catch-all for undefined routes
 app.use((req, res) => {
   res.status(404).json({
     error: "Route not found",
@@ -110,7 +138,7 @@ app.use((req, res) => {
   });
 });
 
-// 6. Global Error Handler (MUST be last)
+// 5. Global Error Handler (MUST be last)
 app.use((error, req, res, next) => {
   console.error("Global error handler:", error);
 
@@ -135,9 +163,8 @@ const startServer = async () => {
     await sequelize.authenticate();
     console.log("✅ Database connected successfully");
 
-    // Sync database models (be careful in production)
     if (process.env.NODE_ENV !== "production") {
-      await sequelize.sync({ alter: true });
+      await sequelize.sync();
       console.log("📊 Database synchronized");
 
       // Seed a default tenant if none exists
@@ -153,6 +180,12 @@ const startServer = async () => {
       console.log(
         `🔄 Shopify Sync: POST http://localhost:${PORT}/api/shopify/sync/1`
       );
+      console.log(
+        `🔗 Webhooks: POST http://localhost:${PORT}/api/webhooks/shopify`
+      );
+      console.log(
+        `🐛 Debug Products: http://localhost:${PORT}/api/debug/products/1`
+      );
     });
   } catch (error) {
     console.error("❌ Unable to start server:", error);
@@ -160,18 +193,4 @@ const startServer = async () => {
   }
 };
 
-// Graceful shutdown handling
-process.on("SIGTERM", async () => {
-  console.log("SIGTERM received, shutting down gracefully");
-  await sequelize.close();
-  process.exit(0);
-});
-
-process.on("SIGINT", async () => {
-  console.log("SIGINT received, shutting down gracefully");
-  await sequelize.close();
-  process.exit(0);
-});
-
-// Start the server
 startServer();
