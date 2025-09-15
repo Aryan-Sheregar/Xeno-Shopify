@@ -34,7 +34,7 @@ function App() {
       fetch(`${API_BASE}/api/dashboard/${selectedTenant}`)
         .then((res) => res.json())
         .then((data) => {
-          console.log("✅ Dashboard Data Received:", data); // Debug log
+          console.log("✅ Dashboard Data Received:", data);
           setDashboardData(data);
         })
         .catch(console.error);
@@ -66,53 +66,30 @@ function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-        <div className="text-white text-xl">🔄 Loading...</div>
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-gray-700 text-xl font-medium">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600">
-      <header className="text-center py-8 text-white">
-        <h1 className="text-4xl font-bold mb-2">
-          🚀 Xeno Shopify Insights Dashboard
-        </h1>
-        <p className="text-blue-100 text-lg">
-          Multi-tenant Shopify Data Analytics Platform
-        </p>
+    <div className="min-h-screen bg-gray-100">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 py-8">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Shopify Dashboard
+          </h1>
+        </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 pb-8">
+      <main className="max-w-7xl mx-auto px-4 py-8">
         {/* System Status */}
-        <section className="bg-white rounded-xl p-6 mb-6 shadow-lg">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-            System Status
+        <section className="bg-white rounded-lg p-6 mb-6 shadow-sm border border-gray-200">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            Tenant Select
           </h2>
-          <div
-            className={`p-4 rounded-lg ${
-              healthStatus?.database === "Connected"
-                ? "bg-green-50 border border-green-200"
-                : "bg-red-50 border border-red-200"
-            }`}
-          >
-            {healthStatus?.database === "Connected" ? (
-              <div>
-                <p className="text-green-700 font-medium">
-                  ✅ Backend Connected
-                </p>
-                <small className="text-green-600">
-                  Database: {healthStatus.database} | Environment:{" "}
-                  {healthStatus.environment}
-                </small>
-              </div>
-            ) : (
-              <p className="text-red-700 font-medium">
-                ❌ Backend Disconnected
-              </p>
-            )}
-          </div>
-
+          
           {tenants.length > 0 && (
             <div className="mt-4 flex items-center gap-4">
               <label className="text-gray-700 font-medium">
@@ -121,7 +98,7 @@ function App() {
               <select
                 value={selectedTenant || ""}
                 onChange={(e) => setSelectedTenant(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 {tenants.map((tenant) => (
                   <option key={tenant.id} value={tenant.id}>
@@ -132,13 +109,13 @@ function App() {
               <button
                 onClick={handleSync}
                 disabled={syncing || !selectedTenant}
-                className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                className={`px-6 py-2 rounded-md font-medium transition-colors ${
                   syncing
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                     : "bg-blue-600 text-white hover:bg-blue-700"
                 }`}
               >
-                {syncing ? "🔄 Syncing..." : "🔄 Sync Shopify Data"}
+                {syncing ? " Syncing..." : " Sync Shopify Data"}
               </button>
             </div>
           )}
@@ -146,18 +123,18 @@ function App() {
 
         {/* Store Overview */}
         {dashboardData && (
-          <section className="bg-white rounded-xl p-6 mb-6 shadow-lg">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-              📊 Store Overview
+          <section className="bg-white rounded-lg p-6 mb-6 shadow-sm border border-gray-200">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+              Store Overview
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-lg border-l-4 border-blue-500">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-blue-50 p-6 rounded-lg border-l-4 border-blue-500">
                 <h3 className="text-3xl font-bold text-blue-700">
                   {dashboardData.summary?.totalCustomers || 0}
                 </h3>
                 <p className="text-blue-600 font-medium">Total Customers</p>
               </div>
-              <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-6 rounded-lg border-l-4 border-purple-500">
+              <div className="bg-purple-50 p-6 rounded-lg border-l-4 border-purple-500">
                 <h3 className="text-3xl font-bold text-purple-700">
                   {dashboardData.summary?.totalProducts || 0}
                 </h3>
@@ -168,20 +145,20 @@ function App() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* ✅ Products List - Show Name, Price, and Quantity */}
+          {/* Products List */}
           {dashboardData?.products?.length > 0 ? (
-            <section className="bg-white rounded-xl p-6 shadow-lg">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                🛍️ Products ({dashboardData.products.length} items)
+            <section className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+                Products 
               </h2>
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {dashboardData.products.map((product) => (
                   <div
                     key={product.id}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200"
                   >
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-800 text-lg">
+                      <h3 className="font-semibold text-gray-900 text-lg">
                         {product.title}
                       </h3>
                       <p className="text-xl text-green-600 font-bold">
@@ -199,28 +176,27 @@ function App() {
               </div>
             </section>
           ) : (
-            <section className="bg-white rounded-xl p-6 shadow-lg">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                🛍️ Products (0 items)
+            <section className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+                Products 
               </h2>
               <div className="text-center py-8 text-gray-500">
-                <div className="text-4xl mb-2">📦</div>
                 <p>No products found. Try syncing your Shopify data.</p>
               </div>
             </section>
           )}
 
-          {/* ✅ Customers List - Show Customer Names */}
+          {/* Customers List */}
           {dashboardData?.customers?.length > 0 ? (
-            <section className="bg-white rounded-xl p-6 shadow-lg">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                👥 Customers ({dashboardData.customers.length} people)
+            <section className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+                Customers
               </h2>
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {dashboardData.customers.map((customer) => (
                   <div
                     key={customer.id}
-                    className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200"
                   >
                     <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
                       <span className="text-blue-600 font-semibold text-lg">
@@ -232,7 +208,7 @@ function App() {
                       </span>
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-800 text-lg">
+                      <h3 className="font-semibold text-gray-900 text-lg">
                         {customer.firstName || "Unknown"}{" "}
                         {customer.lastName || ""}
                       </h3>
@@ -243,9 +219,9 @@ function App() {
               </div>
             </section>
           ) : (
-            <section className="bg-white rounded-xl p-6 shadow-lg">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                👥 Customers (0 people)
+            <section className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+                Customers 
               </h2>
               <div className="text-center py-8 text-gray-500">
                 <div className="text-4xl mb-2">👥</div>
@@ -259,9 +235,9 @@ function App() {
         {dashboardData &&
           !dashboardData.products?.length &&
           !dashboardData.customers?.length && (
-            <section className="bg-white rounded-xl p-8 shadow-lg text-center mt-6">
+            <section className="bg-white rounded-lg p-8 shadow-sm border border-gray-200 text-center mt-6">
               <div className="text-gray-400 text-6xl mb-4">📊</div>
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
                 No Data Found
               </h3>
               <p className="text-gray-600 mb-4">
@@ -273,7 +249,7 @@ function App() {
                 disabled={syncing}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300"
               >
-                {syncing ? "🔄 Syncing..." : "🔄 Sync Now"}
+                {syncing ? " Syncing..." : " Sync Now"}
               </button>
             </section>
           )}
