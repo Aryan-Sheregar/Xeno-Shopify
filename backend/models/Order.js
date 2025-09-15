@@ -1,3 +1,5 @@
+import { DataTypes } from "sequelize";
+import { sequelize } from "../config/database.js";
 export const Order = sequelize.define(
   "Order",
   {
@@ -15,7 +17,7 @@ export const Order = sequelize.define(
       allowNull: false,
     },
     shopifyOrderId: {
-      type: DataTypes.BIGINT, 
+      type: DataTypes.BIGINT,
       unique: true,
     },
     orderNumber: DataTypes.STRING,
