@@ -1,7 +1,7 @@
 import express from "express";
 import { Customer, Order, Product } from "../models/index.js";
 import { sequelize } from "../config/database.js";
-import { Op } from "sequelize"; 
+import { Op, QueryTypes } from "sequelize"; 
 
 const router = express.Router();
 
@@ -17,18 +17,20 @@ router.get("/:tenantId", async (req, res) => {
     // Get total products
     const totalProducts = await Product.count({ where: { tenantId } });
 
-    const orderStats = await Order.findAll({
-      where: {
-        tenantId,
-        status: { [Op.ne]: "draft" }, 
-      },
-      attributes: [
-        [sequelize.fn("COUNT", sequelize.col("id")), "totalOrders"],
-        [sequelize.fn("SUM", sequelize.col("totalAmount")), "totalRevenue"],
-        [sequelize.fn("AVG", sequelize.col("totalAmount")), "avgOrderValue"],
-      ],
-      raw: true,
-    });
+    const orderStats = await sequelize.query(
+      `
+      SELECT 
+        COUNT(id) as "totalOrders",
+        COALESCE(SUM(CAST("totalAmount" AS DECIMAL)), 0) as "totalRevenue",
+        COALESCE(AVG(CAST("totalAmount" AS DECIMAL)), 0) as "avgOrderValue"
+      FROM _orders 
+      WHERE "tenantId" = :tenantId AND status != 'draft'
+    `,
+      {
+        replacements: { tenantId },
+        type: QueryTypes.SELECT,
+      }
+    );
 
     // Get draft orders count separately
     const draftOrdersCount = await Order.count({
@@ -94,15 +96,19 @@ router.get("/:tenantId", async (req, res) => {
       attributes: ["id", "orderNumber", "totalAmount", "orderDate", "status"],
     });
 
-    // Get product inventory info
-    const productStats = await Product.findAll({
-      where: { tenantId },
-      attributes: [
-        [sequelize.fn("SUM", sequelize.col("inventory")), "totalInventory"],
-        [sequelize.fn("AVG", sequelize.col("price")), "avgPrice"],
-      ],
-      raw: true,
-    });
+    const productStats = await sequelize.query(
+      `
+      SELECT 
+        COALESCE(SUM(CAST(inventory AS INTEGER)), 0) as "totalInventory",
+        COALESCE(AVG(CAST(price AS DECIMAL)), 0) as "avgPrice"
+      FROM _products 
+      WHERE "tenantId" = :tenantId
+    `,
+      {
+        replacements: { tenantId },
+        type: QueryTypes.SELECT,
+      }
+    );
 
     // Get revenue by date (last 30 days)
     const thirtyDaysAgo = new Date();
@@ -110,20 +116,22 @@ router.get("/:tenantId", async (req, res) => {
 
     let revenueByDate = [];
     try {
-      revenueByDate = await Order.findAll({
-        where: {
-          tenantId,
-          orderDate: { [Op.gte]: thirtyDaysAgo }, 
-        },
-        attributes: [
-          [sequelize.fn("DATE", sequelize.col("orderDate")), "date"],
-          [sequelize.fn("SUM", sequelize.col("totalAmount")), "revenue"],
-          [sequelize.fn("COUNT", sequelize.col("id")), "orders"],
-        ],
-        group: [sequelize.fn("DATE", sequelize.col("orderDate"))],
-        order: [[sequelize.fn("DATE", sequelize.col("orderDate")), "ASC"]],
-        raw: true,
-      });
+      revenueByDate = await sequelize.query(
+        `
+        SELECT 
+          DATE("orderDate") as date,
+          COALESCE(SUM(CAST("totalAmount" AS DECIMAL)), 0) as revenue,
+          COUNT(id) as orders
+        FROM _orders 
+        WHERE "tenantId" = :tenantId AND "orderDate" >= :thirtyDaysAgo
+        GROUP BY DATE("orderDate")
+        ORDER BY DATE("orderDate") ASC
+      `,
+        {
+          replacements: { tenantId, thirtyDaysAgo },
+          type: QueryTypes.SELECT,
+        }
+      );
     } catch (error) {
       console.warn("Could not fetch revenue by date:", error.message);
     }
@@ -141,7 +149,7 @@ router.get("/:tenantId", async (req, res) => {
         avgProductPrice: parseFloat(productStats[0]?.avgPrice) || 0,
       },
       products,
-      customers, 
+      customers,
       topCustomers,
       recentOrders,
       revenueByDate,
