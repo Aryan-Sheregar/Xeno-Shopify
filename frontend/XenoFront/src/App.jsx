@@ -11,7 +11,6 @@ function App() {
   const [selectedTenant, setSelectedTenant] = useState(null);
 
   useEffect(() => {
-    // Fetch tenants and health status
     Promise.all([
       fetch(`${API_BASE}/api/health`).then((res) => res.json()),
       fetch(`${API_BASE}/api/tenants`).then((res) => res.json()),
@@ -34,7 +33,10 @@ function App() {
     if (selectedTenant) {
       fetch(`${API_BASE}/api/dashboard/${selectedTenant}`)
         .then((res) => res.json())
-        .then(setDashboardData)
+        .then((data) => {
+          console.log("✅ Dashboard Data Received:", data); // Debug log
+          setDashboardData(data);
+        })
         .catch(console.error);
     }
   }, [selectedTenant]);
@@ -46,14 +48,11 @@ function App() {
     try {
       const response = await fetch(
         `${API_BASE}/api/shopify/sync/${selectedTenant}`,
-        {
-          method: "POST",
-        }
+        { method: "POST" }
       );
       const result = await response.json();
 
       if (result.success) {
-        // Refresh dashboard data
         const dashboard = await fetch(
           `${API_BASE}/api/dashboard/${selectedTenant}`
         ).then((res) => res.json());
@@ -75,7 +74,6 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600">
-      {/* Header */}
       <header className="text-center py-8 text-white">
         <h1 className="text-4xl font-bold mb-2">
           🚀 Xeno Shopify Insights Dashboard
@@ -115,7 +113,6 @@ function App() {
             )}
           </div>
 
-          {/* Tenant Selection */}
           {tenants.length > 0 && (
             <div className="mt-4 flex items-center gap-4">
               <label className="text-gray-700 font-medium">
@@ -132,7 +129,6 @@ function App() {
                   </option>
                 ))}
               </select>
-
               <button
                 onClick={handleSync}
                 disabled={syncing || !selectedTenant}
@@ -148,105 +144,139 @@ function App() {
           )}
         </section>
 
-        {/* Dashboard Metrics */}
+        {/* Store Overview */}
         {dashboardData && (
           <section className="bg-white rounded-xl p-6 mb-6 shadow-lg">
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-              📊 Store Analytics
+              📊 Store Overview
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-lg border-l-4 border-blue-500">
                 <h3 className="text-3xl font-bold text-blue-700">
-                  {dashboardData.totalCustomers || 0}
+                  {dashboardData.summary?.totalCustomers || 0}
                 </h3>
                 <p className="text-blue-600 font-medium">Total Customers</p>
               </div>
-              <div className="bg-gradient-to-r from-green-50 to-green-100 p-6 rounded-lg border-l-4 border-green-500">
-                <h3 className="text-3xl font-bold text-green-700">
-                  {dashboardData.totalOrders || 0}
-                </h3>
-                <p className="text-green-600 font-medium">Total Orders</p>
-              </div>
               <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-6 rounded-lg border-l-4 border-purple-500">
                 <h3 className="text-3xl font-bold text-purple-700">
-                  {dashboardData.totalProducts || 0}
+                  {dashboardData.summary?.totalProducts || 0}
                 </h3>
                 <p className="text-purple-600 font-medium">Total Products</p>
-              </div>
-              <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 p-6 rounded-lg border-l-4 border-yellow-500">
-                <h3 className="text-3xl font-bold text-yellow-700">
-                  ${(dashboardData.totalRevenue || 0).toFixed(2)}
-                </h3>
-                <p className="text-yellow-600 font-medium">Total Revenue</p>
               </div>
             </div>
           </section>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Top Customers */}
-          {dashboardData?.topCustomers?.length > 0 && (
+          {/* ✅ Products List - Show Name, Price, and Quantity */}
+          {dashboardData?.products?.length > 0 ? (
             <section className="bg-white rounded-xl p-6 shadow-lg">
               <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                👥 Top Customers
+                🛍️ Products ({dashboardData.products.length} items)
               </h2>
-              <div className="space-y-3">
-                {dashboardData.topCustomers.map((customer, index) => (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {dashboardData.products.map((product) => (
                   <div
-                    key={index}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    key={product.id}
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                   >
-                    <div>
-                      <p className="font-medium text-gray-800">
-                        {customer.firstName} {customer.lastName}
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-800 text-lg">
+                        {product.title}
+                      </h3>
+                      <p className="text-xl text-green-600 font-bold">
+                        ${parseFloat(product.price).toFixed(2)}
                       </p>
-                      <p className="text-sm text-gray-600">{customer.email}</p>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-green-600">
-                        ${customer.totalSpent}
+                    <div className="text-right ml-4">
+                      <p className="text-2xl font-bold text-blue-600">
+                        {product.inventory}
                       </p>
+                      <p className="text-sm text-gray-500">units in stock</p>
                     </div>
                   </div>
                 ))}
+              </div>
+            </section>
+          ) : (
+            <section className="bg-white rounded-xl p-6 shadow-lg">
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+                🛍️ Products (0 items)
+              </h2>
+              <div className="text-center py-8 text-gray-500">
+                <div className="text-4xl mb-2">📦</div>
+                <p>No products found. Try syncing your Shopify data.</p>
               </div>
             </section>
           )}
 
-          {/* Recent Orders */}
-          {dashboardData?.recentOrders?.length > 0 && (
+          {/* ✅ Customers List - Show Customer Names */}
+          {dashboardData?.customers?.length > 0 ? (
             <section className="bg-white rounded-xl p-6 shadow-lg">
               <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                📦 Recent Orders
+                👥 Customers ({dashboardData.customers.length} people)
               </h2>
-              <div className="space-y-3">
-                {dashboardData.recentOrders.slice(0, 5).map((order, index) => (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {dashboardData.customers.map((customer) => (
                   <div
-                    key={index}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    key={customer.id}
+                    className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                   >
-                    <div>
-                      <p className="font-medium text-gray-800">
-                        #{order.orderNumber}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {order.customer?.firstName} {order.customer?.lastName}
-                      </p>
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                      <span className="text-blue-600 font-semibold text-lg">
+                        {(
+                          customer.firstName?.[0] ||
+                          customer.email?.[0] ||
+                          "?"
+                        ).toUpperCase()}
+                      </span>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-blue-600">
-                        ${order.totalAmount}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(order.orderDate).toLocaleDateString()}
-                      </p>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-800 text-lg">
+                        {customer.firstName || "Unknown"}{" "}
+                        {customer.lastName || ""}
+                      </h3>
+                      <p className="text-gray-600">{customer.email}</p>
                     </div>
                   </div>
                 ))}
               </div>
             </section>
+          ) : (
+            <section className="bg-white rounded-xl p-6 shadow-lg">
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+                👥 Customers (0 people)
+              </h2>
+              <div className="text-center py-8 text-gray-500">
+                <div className="text-4xl mb-2">👥</div>
+                <p>No customers found. Try syncing your Shopify data.</p>
+              </div>
+            </section>
           )}
         </div>
+
+        {/* Sync Button when no data */}
+        {dashboardData &&
+          !dashboardData.products?.length &&
+          !dashboardData.customers?.length && (
+            <section className="bg-white rounded-xl p-8 shadow-lg text-center mt-6">
+              <div className="text-gray-400 text-6xl mb-4">📊</div>
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                No Data Found
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Try syncing your Shopify data to see products and customers
+                here.
+              </p>
+              <button
+                onClick={handleSync}
+                disabled={syncing}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300"
+              >
+                {syncing ? "🔄 Syncing..." : "🔄 Sync Now"}
+              </button>
+            </section>
+          )}
       </main>
     </div>
   );
