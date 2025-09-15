@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const sequelize = new Sequelize({
-  dialect: "mysql",
+  dialect: "postgres",
   logging: false,
   operatorsAliases: false,
   host: process.env.DB_HOST,
