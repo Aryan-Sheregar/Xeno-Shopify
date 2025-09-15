@@ -29,7 +29,7 @@ app.use(
 // Setup database associations
 setupAssociations();
 
-// 2. Health Check Route (Simple endpoint first)
+//Health Check Route
 app.get("/api/health", async (req, res) => {
   try {
     await sequelize.authenticate();
@@ -51,7 +51,7 @@ app.get("/api/health", async (req, res) => {
   }
 });
 
-// 3. API Routes (AFTER middleware, BEFORE error handlers)
+//API Routes
 app.use("/api/shopify", shopifyRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/webhooks", webhookRoutes);
@@ -102,22 +102,22 @@ app.post("/api/tenants", async (req, res) => {
   }
 });
 
-// Debug endpoint: get products for a tenant
-app.get("/api/debug/products/:tenantId", async (req, res) => {
-  try {
-    const { tenantId } = req.params;
-    const products = await Product.findAll({
-      where: { tenantId },
-      raw: true,
-    });
-    res.json({
-      count: products.length,
-      products,
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+// // Debug endpoint: get products for a tenant
+// app.get("/api/debug/products/:tenantId", async (req, res) => {
+//   try {
+//     const { tenantId } = req.params;
+//     const products = await Product.findAll({
+//       where: { tenantId },
+//       raw: true,
+//     });
+//     res.json({
+//       count: products.length,
+//       products,
+//     });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// });
 
 app.delete("/api/tenants/:tenantId", async (req, res) => {
   try {
@@ -129,7 +129,7 @@ app.delete("/api/tenants/:tenantId", async (req, res) => {
   }
 });
 
-// 4. Catch-all for undefined routes
+//Catch-all for undefined routes
 app.use((req, res) => {
   res.status(404).json({
     error: "Route not found",
@@ -138,7 +138,7 @@ app.use((req, res) => {
   });
 });
 
-// 5. Global Error Handler (MUST be last)
+//Global Error Handler
 app.use((error, req, res, next) => {
   console.error("Global error handler:", error);
 
@@ -161,11 +161,11 @@ const startServer = async () => {
   try {
     // Test database connection
     await sequelize.authenticate();
-    console.log("✅ Database connected successfully");
+    console.log("Database connected successfully");
 
     if (process.env.NODE_ENV !== "production") {
       await sequelize.sync();
-      console.log("📊 Database synchronized");
+      console.log("Database synchronized");
     }
 
     // Get the first tenant for logging purposes
@@ -174,38 +174,9 @@ const startServer = async () => {
     });
 
     // Start the server
-    app.listen(PORT, () => {
-      console.log(`🚀 Backend server running on http://localhost:${PORT}`);
-      console.log(`📊 API Health Check: http://localhost:${PORT}/api/health`);
-      console.log(`👥 Tenants API: http://localhost:${PORT}/api/tenants`);
-
-      if (firstTenant) {
-        const tenantId = firstTenant.id;
-        console.log(
-          `📈 Dashboard API: http://localhost:${PORT}/api/dashboard/${tenantId}`
-        );
-        console.log(
-          `🔄 Shopify Sync: POST http://localhost:${PORT}/api/shopify/sync/${tenantId}`
-        );
-        console.log(
-          `🔗 Webhooks: POST http://localhost:${PORT}/api/webhooks/shopify`
-        );
-        console.log(
-          `🐛 Debug Products: http://localhost:${PORT}/api/debug/products/${tenantId}`
-        );
-        console.log(
-          `\n💡 Using Tenant: "${firstTenant.name}" (${firstTenant.shopifyDomain})`
-        );
-      } else {
-        console.log(`⚠️  No tenants found yet. Create one first:`);
-        console.log(`   POST http://localhost:${PORT}/api/tenants`);
-        console.log(
-          `   Body: {"name": "Your Store", "shopifyDomain": "your-store.myshopify.com"}`
-        );
-      }
-    });
+    app.listen(PORT, () => {});
   } catch (error) {
-    console.error("❌ Unable to start server:", error);
+    console.error("Unable to start server:", error);
     process.exit(1);
   }
 };

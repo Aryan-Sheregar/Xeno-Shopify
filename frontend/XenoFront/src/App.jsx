@@ -34,7 +34,7 @@ function App() {
       fetch(`${API_BASE}/api/dashboard/${selectedTenant}`)
         .then((res) => res.json())
         .then((data) => {
-          console.log("✅ Dashboard Data Received:", data);
+          console.log("Dashboard Data Received:", data);
           setDashboardData(data);
         })
         .catch(console.error);

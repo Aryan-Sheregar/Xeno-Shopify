@@ -1,7 +1,7 @@
 import express from "express";
 import { Customer, Order, Product } from "../models/index.js";
 import { sequelize } from "../config/database.js";
-import { Op } from "sequelize"; // ✅ ADD THIS IMPORT
+import { Op } from "sequelize"; 
 
 const router = express.Router();
 
@@ -17,11 +17,10 @@ router.get("/:tenantId", async (req, res) => {
     // Get total products
     const totalProducts = await Product.count({ where: { tenantId } });
 
-    // Get order statistics (exclude draft orders for revenue)
     const orderStats = await Order.findAll({
       where: {
         tenantId,
-        status: { [Op.ne]: "draft" }, // ✅ NOW USING Op.ne CORRECTLY
+        status: { [Op.ne]: "draft" }, 
       },
       attributes: [
         [sequelize.fn("COUNT", sequelize.col("id")), "totalOrders"],
@@ -36,7 +35,6 @@ router.get("/:tenantId", async (req, res) => {
       where: { tenantId, status: "draft" },
     });
 
-    // ✅ Get detailed products list
     const products = await Product.findAll({
       where: { tenantId },
       order: [["createdAt", "DESC"]],
@@ -52,7 +50,6 @@ router.get("/:tenantId", async (req, res) => {
       ],
     });
 
-    // ✅ Get detailed customers list
     const customers = await Customer.findAll({
       where: { tenantId },
       order: [["createdAt", "DESC"]],
@@ -107,7 +104,7 @@ router.get("/:tenantId", async (req, res) => {
       raw: true,
     });
 
-    // Get revenue by date (last 30 days) - with safe Op usage
+    // Get revenue by date (last 30 days)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -116,7 +113,7 @@ router.get("/:tenantId", async (req, res) => {
       revenueByDate = await Order.findAll({
         where: {
           tenantId,
-          orderDate: { [Op.gte]: thirtyDaysAgo }, // ✅ Op.gte also fixed
+          orderDate: { [Op.gte]: thirtyDaysAgo }, 
         },
         attributes: [
           [sequelize.fn("DATE", sequelize.col("orderDate")), "date"],
@@ -143,15 +140,15 @@ router.get("/:tenantId", async (req, res) => {
         totalInventory: parseInt(productStats[0]?.totalInventory) || 0,
         avgProductPrice: parseFloat(productStats[0]?.avgPrice) || 0,
       },
-      products, // ✅ Include products array
-      customers, // ✅ Include customers array
+      products,
+      customers, 
       topCustomers,
       recentOrders,
       revenueByDate,
       generatedAt: new Date().toISOString(),
     };
 
-    console.log(`✅ Dashboard data generated:`, {
+    console.log(`Dashboard data generated:`, {
       totalCustomers,
       totalProducts,
       productsArrayLength: products.length,
