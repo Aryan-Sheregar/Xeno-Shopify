@@ -133,3 +133,6 @@ The application uses the following data models, managed by Sequelize:
 -   `quantity` (Integer)
 -   `unitPrice` (Decimal)
 -   `totalPrice` (Decimal)
+
+# Workflow
+<img width="947" height="308" alt="Image" src="https://github.com/user-attachments/assets/8d7124e5-7629-4d12-8e81-e745a107fb4a" />
