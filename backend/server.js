@@ -118,6 +118,33 @@ app.post("/api/tenants", async (req, res) => {
 //     res.status(500).json({ error: error.message });
 //   }
 // });
+app.get("/api/customers/:tenantId", async (req, res) => {
+  try {
+    const { Customer } = await import("./models/index.js");
+    const customers = await Customer.findAll({
+      where: { tenantId: req.params.tenantId },
+    });
+    res.json(customers);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Failed to fetch customers", message: error.message });
+  }
+});
+
+app.get("/api/products/:tenantId", async (req, res) => {
+  try {
+    const { Product } = await import("./models/index.js");
+    const products = await Product.findAll({
+      where: { tenantId: req.params.tenantId },
+    });
+    res.json(products);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Failed to fetch products", message: error.message });
+  }
+});
 
 app.delete("/api/tenants/:tenantId", async (req, res) => {
   try {
