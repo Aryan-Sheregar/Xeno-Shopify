@@ -31,7 +31,7 @@ export const OrderLineItem = sequelize.define(
     },
   },
   {
-    tableName: "order_line_items",
+    tableName: "_order_line_items",
     timestamps: true,
   }
 );
