@@ -166,26 +166,43 @@ const startServer = async () => {
     if (process.env.NODE_ENV !== "production") {
       await sequelize.sync();
       console.log("📊 Database synchronized");
-
-      // Seed a default tenant if none exists
-      const tenantCount = await Tenant.count();
     }
+
+    // Get the first tenant for logging purposes
+    const firstTenant = await Tenant.findOne({
+      order: [["createdAt", "ASC"]],
+    });
 
     // Start the server
     app.listen(PORT, () => {
       console.log(`🚀 Backend server running on http://localhost:${PORT}`);
       console.log(`📊 API Health Check: http://localhost:${PORT}/api/health`);
       console.log(`👥 Tenants API: http://localhost:${PORT}/api/tenants`);
-      console.log(`📈 Dashboard API: http://localhost:${PORT}/api/dashboard/1`);
-      console.log(
-        `🔄 Shopify Sync: POST http://localhost:${PORT}/api/shopify/sync/1`
-      );
-      console.log(
-        `🔗 Webhooks: POST http://localhost:${PORT}/api/webhooks/shopify`
-      );
-      console.log(
-        `🐛 Debug Products: http://localhost:${PORT}/api/debug/products/1`
-      );
+
+      if (firstTenant) {
+        const tenantId = firstTenant.id;
+        console.log(
+          `📈 Dashboard API: http://localhost:${PORT}/api/dashboard/${tenantId}`
+        );
+        console.log(
+          `🔄 Shopify Sync: POST http://localhost:${PORT}/api/shopify/sync/${tenantId}`
+        );
+        console.log(
+          `🔗 Webhooks: POST http://localhost:${PORT}/api/webhooks/shopify`
+        );
+        console.log(
+          `🐛 Debug Products: http://localhost:${PORT}/api/debug/products/${tenantId}`
+        );
+        console.log(
+          `\n💡 Using Tenant: "${firstTenant.name}" (${firstTenant.shopifyDomain})`
+        );
+      } else {
+        console.log(`⚠️  No tenants found yet. Create one first:`);
+        console.log(`   POST http://localhost:${PORT}/api/tenants`);
+        console.log(
+          `   Body: {"name": "Your Store", "shopifyDomain": "your-store.myshopify.com"}`
+        );
+      }
     });
   } catch (error) {
     console.error("❌ Unable to start server:", error);
