@@ -1,6 +1,3 @@
-import { DataTypes } from "sequelize";
-import { sequelize } from "../config/database.js";
-
 export const Product = sequelize.define(
   "Product",
   {
@@ -14,7 +11,7 @@ export const Product = sequelize.define(
       allowNull: false,
     },
     shopifyProductId: {
-      type: DataTypes.STRING,
+      type: DataTypes.BIGINT,
       unique: true,
     },
     title: {
@@ -22,6 +19,8 @@ export const Product = sequelize.define(
       allowNull: false,
     },
     description: DataTypes.TEXT,
+    imageUrl: DataTypes.STRING,
+    status: DataTypes.STRING,
     price: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,

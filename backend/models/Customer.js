@@ -1,6 +1,3 @@
-import { DataTypes } from "sequelize";
-import { sequelize } from "../config/database.js";
-
 export const Customer = sequelize.define(
   "Customer",
   {
@@ -14,7 +11,7 @@ export const Customer = sequelize.define(
       allowNull: false,
     },
     shopifyCustomerId: {
-      type: DataTypes.STRING,
+      type: DataTypes.BIGINT, 
       unique: true,
     },
     firstName: DataTypes.STRING,
@@ -22,9 +19,6 @@ export const Customer = sequelize.define(
     email: {
       type: DataTypes.STRING,
       allowNull: true,
-      // validate: {
-      //   isEmail: true,
-      // },
     },
     phone: DataTypes.STRING,
     totalSpent: {
