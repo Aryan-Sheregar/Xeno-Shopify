@@ -26,7 +26,7 @@ export const Tenant = sequelize.define(
     },
   },
   {
-    tableName: "tenants",
+    tableName: "_tenants",
     timestamps: true,
   }
 );

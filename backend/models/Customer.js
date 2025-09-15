@@ -37,7 +37,7 @@ export const Customer = sequelize.define(
     },
   },
   {
-    tableName: "customers",
+    tableName: "_customers",
     timestamps: true,
   }
 );
